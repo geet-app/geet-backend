@@ -11,9 +11,6 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-# from app import db
-
-
 class Base(DeclarativeBase):
     pass
 
