@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask import request
 
-from geet_brain import lyrics
 from geet_brain.recommendations import Recommendations
+from geet_brain.analyse import Analyse
+from geet_brain import lyrics
 from geet_brain import search
 
 from flask_sqlalchemy import SQLAlchemy
@@ -15,6 +17,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Base(DeclarativeBase):
     pass
@@ -80,6 +83,18 @@ def search_songs():
     query = data["query"]
 
     return jsonify(search.search_song(query))
+
+
+@app.route("/analyse", methods=["POST"])
+def analyse_song():
+    audio_file = request.files["audio"]
+    audio_data = audio_file.read()
+
+    user_id = request.get_json()["user_id"]
+
+    analyse = Analyse(audio_data, user_id)
+
+    return jsonify(analyse.analyse())
 
 
 if __name__ == "__main__":
