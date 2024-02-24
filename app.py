@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from geet_brain import lyrics
-from geet_brain.recommendations import Recommendations
-from geet_brain import search
+from utils import lyrics
+from utils.recommendations import Recommendations
+from utils import search
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Base(DeclarativeBase):
     pass
@@ -30,10 +31,19 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 db.init_app(app)
 
 
-class User(db.Model):
+class Song(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(unique=True)
-    email: Mapped[str]
+    song_id: Mapped[str] = mapped_column(String)
+    song_file: Mapped[str] = mapped_column(String)
+    thumb_file: Mapped[str] = mapped_column(String)
+
+
+class UserHistory(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(String)
+    song_id: Mapped[str] = mapped_column(String)
+    timestamp: Mapped[int] = mapped_column(Integer)
+    score: Mapped[int] = mapped_column(Integer)
 
 
 with app.app_context():
@@ -48,7 +58,7 @@ def index():
 @app.route("/lyrics", methods=["POST"])
 def get_lyrics():
     data = request.get_json()
-    print(data)
+    # print(data)
     artist_name = data["artist_name"]
     song_name = data["song_name"]
 
@@ -76,8 +86,9 @@ def get_recommendations(genre):
 
 @app.route("/search", methods=["GET"])
 def search_songs():
-    data = request.get_json()
-    query = data["query"]
+    query = request.args.get("query")
+    if query is None:
+        return jsonify({"error": "No query provided"}), 400
 
     return jsonify(search.search_song(query))
 
