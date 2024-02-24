@@ -1,0 +1,2 @@
+# curl -X POST http://127.0.0.1:5000/lyrics -H 'Content-Type: application/json' -d '{"artist_name": "Taylor Swift", "song_name": "Cruel Summer", "lang": "en"}'
+curl -X GET http://127.0.0.1:5000/search -H 'Content-Type: application/json' -d '{"query": "Taylor swift"}'
