@@ -11,6 +11,11 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class Base(DeclarativeBase):
     pass
 
@@ -20,7 +25,7 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 CORS(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 
 db.init_app(app)
 
