@@ -17,7 +17,7 @@ class Recommendations:
                 {
                     "title": song["title"],
                     "artist": song["artists"][0]["name"],
-                    "id": song["videoId"],
+                    "song_id": song["videoId"],
                     "thumbnail": song["thumbnails"][0]["url"],
                 }
                 for song in yt_response["tracks"]
@@ -33,7 +33,7 @@ class Recommendations:
                 {
                     "title": song["title"],
                     "artist": song["artists"][0]["name"],
-                    "id": song["videoId"],
+                    "song_id": song["videoId"],
                     "thumbnail": song["thumbnails"][0]["url"],
                 }
                 for song in yt_response["tracks"]
@@ -49,7 +49,7 @@ class Recommendations:
                 {
                     "title": song["title"],
                     "artist": song["artists"][0]["name"],
-                    "id": song["videoId"],
+                    "song_id": song["videoId"],
                     "thumbnail": song["thumbnails"][0]["url"],
                 }
                 for song in yt_response["tracks"]
@@ -65,7 +65,7 @@ class Recommendations:
                 {
                     "title": song["title"],
                     "artist": song["artists"][0]["name"],
-                    "id": song["videoId"],
+                    "song_id": song["videoId"],
                     "thumbnail": song["thumbnails"][0]["url"],
                 }
                 for song in yt_response["tracks"]

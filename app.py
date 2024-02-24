@@ -6,6 +6,7 @@ from geet_brain.recommendations import Recommendations
 from geet_brain.analyse import Analyse
 from geet_brain import lyrics
 from geet_brain import search
+from geet_brain import foobar  # temporary import
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -85,14 +86,26 @@ def search_songs():
     return jsonify(search.search_song(query))
 
 
+@app.route("/init/<id>", methods=["POST"])
+def initialize_song(id):
+    song = (
+        foobar.foo()
+    )  # temporary call, should be replaced by cahcing which will be done by pjr
+
+    if not song.initialised:
+        song.initialise()
+
+
 @app.route("/analyse", methods=["POST"])
 def analyse_song():
     audio_file = request.files["audio"]
     audio_data = audio_file.read()
 
-    user_id = request.get_json()["user_id"]
+    data = request.get_json()
+    user_id = data["user_id"]
+    song_id = data["song_id"]
 
-    analyse = Analyse(audio_data, user_id)
+    analyse = Analyse(audio_data, user_id, song_id)
 
     return jsonify(analyse.analyse())
 
