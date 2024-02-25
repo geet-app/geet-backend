@@ -1,3 +1,4 @@
+import asyncio
 import subprocess
 import whisper
 import math
@@ -9,7 +10,7 @@ from geet_brain import song
 
 YTDLP_PATH = "yt-dlp"  # the command can be global too!
 
-MY_PATH = Path(__file__).parent.parent.absolute() / "static"
+MY_PATH = Path(__file__).parent.absolute() / "static"
 
 
 def jaccard_similarity(sent1, sent2):
@@ -81,16 +82,20 @@ def convert_to_format(lyrics_synced):
     return texts, times
 
 
-def separate_vocal(song_obj: Song, db):
+async def separate_vocal(song_obj: Song, db):
 
     if song_obj.instrumental_file and song_obj.vocal_file:
         return # already separated
     
     out_path = Path(song_obj.song_file).parent.parent / "splitted"
-    subprocess.run(
+
+    proc = await asyncio.create_subprocess_shell(
         f"demucs {song_obj.song_file} --out {out_path} -n mdx_extra_q --two-stems vocals --mp3 -j 8",
-        shell=True,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
+    stdout, stderr = await proc.communicate()
+    print(stdout, stderr)
 
     song_obj.instrumental_file = str((out_path / "mdx_extra_q" / song_obj.song_id / "no_vocals.mp3").absolute())
     song_obj.vocal_file = str((out_path / "mdx_extra_q" / song_obj.song_id / "vocals.mp3").absolute())
@@ -103,13 +108,13 @@ def get_lyrics(id, app, sng):
         return lyrics["lyrics"]
 
 
-def get_timesynced_lyrics(db, app, songid, song_obj: Song):
+async def get_timesynced_lyrics(db, app, songid, song_obj: Song):
 
     if song_obj.lyrics_synced:
         return song_obj.lyrics_synced, song_obj.lyrics_synced_times
 
     # file_name = download_song(db, id, song_obj.song_title, song_obj.song_artist, song_obj.thumb_file)
-    separate_vocal(song_obj, db)
+    await separate_vocal(song_obj, db)
 
     lyrics = get_lyrics(songid, app, song_obj)
 

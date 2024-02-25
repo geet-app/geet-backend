@@ -5,7 +5,7 @@ from geet_brain import tempo
 from geet_brain import non_silent
 
 import numpy as np
-from app import Song
+# from app import Song
 
 from pydub import AudioSegment, silence
 
@@ -22,12 +22,13 @@ def f(x, w=15):
 
 
 class Analyser:
-    def __init__(self, audio, song_obj: Song) -> None:
+    def __init__(self, audio, song_obj) -> None:
         self.audio = audio
         # self.user_id = user_id
         self.song_id = song_obj.song_id
         self.song_obj = song_obj
         # self.index = index
+        print(self.song_obj)
 
         _non_silent = non_silent.get_nonsilent(song_obj.vocal_file)
 

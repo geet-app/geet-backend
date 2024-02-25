@@ -145,7 +145,7 @@ async def get_file(id):
         )
 
 
-@app.route("/analyse/<id>/analysis_uid", methods=["POST"])
+@app.route("/analyse/<id>/<analysis_uid>", methods=["POST"])
 async def analyse_song(id, analysis_uid):
 
     if id is None:
@@ -153,16 +153,24 @@ async def analyse_song(id, analysis_uid):
     if analysis_uid is None:
         return jsonify({"error": "No analysis_uid provided"}), 400
 
-    recording_audio_path = (Path(__file__) / "static" / "temp_things" / "recording_242424353.mp3").absolute()
+    recording_audio_path = (
+        Path(__file__).parent / "static" / "temp_things" / "recording_242424353.mp3"
+    ).absolute()
 
     recording = AudioSegment.from_mp3(recording_audio_path)
-    
+
     if Song.query.filter_by(song_id=id).first() is None:
         song_obj = await search.store_song(id, db, Song)
-        synced_lyrics.separate_vocal(song_obj, db)
+        # await synced_lyrics.separate_vocal(song_obj, db)
     else:
         song_obj = Song.query.filter_by(song_id=id).first()
-    
+        # if song_obj.vocal_file is None:
+        # await synced_lyrics.separate_vocal(song_obj, db)
+
+    song_obj.song_file = "/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/song/LJzp_mDxaT0.wav"
+    song_obj.vocal_file = "/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/LJzp_mDxaT0/vocals.wav"
+    song_obj.instrumental_file = "/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/LJzp_mDxaT0/instrumental.wav"
+
     analyser_obj = analyse.Analyser(
         recording,
         song_obj,
@@ -172,13 +180,9 @@ async def analyse_song(id, analysis_uid):
 
     color_scheme = gradient_colors.colorize(song_obj.thumb_file)
 
-    data.append(
-        {
-            "recordingURL": f"static/song/{id}.mp3",
-            "originalVocalsURL": f"static/splitted/mdx_extra_q/{id}/vocals.mp3",
-            "bgColor": color_scheme[0],
-        }
-    )
+    data["recordingURL"] = recording_audio_path
+    data["originalVocalsURL"] = f"static/splitted/mdx_extra_q/{id}/vocals.mp3"
+    data["bgColor"] = color_scheme[0]
 
     return data
 
@@ -217,7 +221,7 @@ async def get_synced_lyrics(id):
         await search.store_song(id, db, Song)
         song = Song.query.filter_by(song_id=id).first()
     if song.lyrics_synced is None:
-        lyrics, times = synced_lyrics.get_timesynced_lyrics(db, app, id, song)
+        lyrics, times = await synced_lyrics.get_timesynced_lyrics(db, app, id, song)
     else:
         lyrics = song.lyrics_synced
         times = song.lyrics_synced_times
@@ -232,4 +236,4 @@ if __name__ == "__main__":
         print("*" * 50)
         print("Database created")
         print("*" * 50)
-        app.run(debug=True, host="0.0.0.0")
+        app.run(debug=True, host="0.0.0.0", port=5302)
