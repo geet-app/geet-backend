@@ -114,7 +114,7 @@ async def get_song(id):
     return jsonify(await song.get_song(id, app, db, Song))
 
 
-@app.route("/lyric/<id>", methods=["GET"])
+@app.route("/lyric-answered-death/<id>", methods=["GET"])
 def get_lyric(id):
     if id is None:
         return jsonify({"error": "No song id provided"}), 400
@@ -211,7 +211,7 @@ async def analyse_song(id, analysis_uid):
     return jsonify(analyser.analyse())
 
 
-@app.route("/synced-lyrics/<id>", methods=["GET"])
+@app.route("/lyric/<id>", methods=["GET"])
 async def get_synced_lyrics(id):
     if id is None:
         return jsonify({"error": "No song id provided"}), 400
@@ -227,7 +227,7 @@ async def get_synced_lyrics(id):
         times = song.lyrics_synced_times
         times = times.split(",")
 
-    return {"lyrics": lyrics, "times": times}
+    return {"lyrics": lyrics, "timeSync": times, "bgColor": "#242424"}
 
 
 if __name__ == "__main__":
