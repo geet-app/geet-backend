@@ -7,7 +7,7 @@ BROWSER_ID = ""
 
 
 # from .cacher import Cache
-def store_song(song_id: str, db, Song):
+async def store_song(song_id: str, db, Song):
     ytmusic = YTMusic("oauth.json")
     individual_song_response = ytmusic.get_song(song_id)
 
@@ -18,23 +18,25 @@ def store_song(song_id: str, db, Song):
     individual_song_artist = individual_song_response["videoDetails"]["author"]
 
     # individual_song_file = (download_song.download_yt, song_id)
-    individual_song_file = threading.Thread(
-        target=download_song.download_yt, args=(song_id,)
-    )
+    # individual_song_file = threading.Thread(
+    #     target=download_song.download_yt, args=(song_id,)
+    # )
+
+    path = await download_song.download_yt(song_id)
 
     db_song = Song(
         song_id=song_id,
         song_title=individual_song_title,
         song_artist=individual_song_artist,
         thumb_file=individual_song_thumbnail,
-        song_file=f"/static/songs/{song_id}.mp3",
+        song_file=path,
     )
 
     db.session.add(db_song)
     db.session.commit()
 
 
-def search_song(query: str, db, Song):
+async def search_song(query: str, db, Song):
 
     ytmusic = YTMusic("oauth.json")
     yt_response = ytmusic.search(query, filter="songs")
@@ -48,7 +50,7 @@ def search_song(query: str, db, Song):
             #     target=store_song, args=(result["videoId"], db, Song)
             # ).start()
 
-            store_song(result["videoId"], db, Song)
+            await store_song(result["videoId"], db, Song)
             response["songs"].append(
                 {
                     "title": result["title"],

@@ -1,9 +1,9 @@
 from geet_brain.utils import gradient_colors
 from geet_brain.lyrics import en_fetch_lyrics, hn_fetch_lyrics
 
-
-def get_song(id, db, Song):
-    song = Song.query.filter_by(song_id=id).first()
+def get_song(id, app, Song):
+    with app.app_context():
+        song = Song.query.filter_by(song_id=id).first()
 
     response = {
         "title": song.song_title,
@@ -15,8 +15,10 @@ def get_song(id, db, Song):
     return response
 
 
-def get_lyric(id, db, Song):
-    song = Song.query.filter_by(song_id=id).first()
+def get_lyric(id, app, Song):
+    with app.app_context():
+        song = Song.query.filter_by(song_id=id).first()
+    
     color_scheme = gradient_colors.colorize(song.thumb_file)
 
     _lyrics = en_fetch_lyrics(song.song_artist, song.song_title)

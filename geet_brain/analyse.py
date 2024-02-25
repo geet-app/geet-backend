@@ -89,8 +89,8 @@ class Analyse:
             seek_step=250,
         )
 
-        self.timbre = None
-        self.v_timbre = None
+    def init_data(self):
+        pass
 
     def analyse(self):
         self.netscore = 0
