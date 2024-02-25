@@ -1,5 +1,8 @@
-from .utils import download_song, dominant_timbre, tempo
-from .utils import non_silent
+from pathlib import Path
+from geet_brain import download_song
+from geet_brain import dominant_timbre
+from geet_brain import tempo
+from geet_brain import non_silent
 
 import numpy as np
 
@@ -18,7 +21,7 @@ def f(x, w=15):
 
 
 class Analyse:
-    def __init__(self, audio, song_id, index) -> None:
+    def __init__(self, audio, song_id) -> None:
         self.audio = audio
         # self.user_id = user_id
         self.song_id = song_id
@@ -114,6 +117,8 @@ class Analyse:
         self.netscore += 0.25 * self.breaks_score
 
         print("NETSCORE", self.netscore)
+        print(self.data)
+
         return self.netscore
 
     def get_length_diff(self):
@@ -237,7 +242,8 @@ class Analyse:
 
     def get_tempo(self):
         self.tempo = 0
-        t, beat_frames = tempo.get_tempo(f"./static/song/{self.song_id}.wav")
+        PATH = Path(__file__).parent.parent.absolute() / "static" / "song" / f"{self.song_id}.wav"
+        t, beat_frames = tempo.get_tempo(str(PATH))
         self.tempo = t
         self.data["recording_tempo"] = 10 * (round(t / 10))
 

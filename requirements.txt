@@ -64,3 +64,4 @@ ytmusicapi==1.5.3
 openai-whisper
 demucs
 pydub
+setuptools

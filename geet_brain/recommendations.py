@@ -1,6 +1,6 @@
 from ytmusicapi import YTMusic
-from geet_brain.search import store_song
-from geet_brain.utils import gradient_colors
+from geet_brain import search
+from geet_brain import gradient_colors
 
 POP_HITS = "PLl5_Ali2qKoaRsOnC0j4bqAYVMD5W26PA"
 HIP_HOP_HITS = "PLl5_Ali2qKoatbKApLFNY4vySMxbIZgMJ"
@@ -34,7 +34,7 @@ class Recommendations:
                 .filter(self.Song.song_id == song["videoId"])
                 .count()
             ):
-                await store_song(song["videoId"], self.db, self.Song)
+                await search.store_song(song["videoId"], self.db, self.Song)
 
             db_song = (
                 self.db.session.query(self.Song)

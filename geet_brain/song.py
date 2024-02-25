@@ -1,5 +1,5 @@
-from geet_brain.utils import gradient_colors
-from geet_brain.lyrics import en_fetch_lyrics, hn_fetch_lyrics
+from geet_brain import gradient_colors
+from geet_brain import lyrics
 
 def get_song(id, app, Song):
     with app.app_context():
@@ -21,7 +21,7 @@ def get_lyric(id, app, Song):
     
     color_scheme = gradient_colors.colorize(song.thumb_file)
 
-    _lyrics = en_fetch_lyrics(song.song_artist, song.song_title)
+    _lyrics = lyrics.en_fetch_lyrics(song.song_artist, song.song_title)
     lyrics = {
         "lyrics": _lyrics,
         "bgColor": color_scheme[0],

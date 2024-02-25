@@ -1,6 +1,6 @@
 from ytmusicapi import YTMusic
 import asyncio
-from geet_brain.utils import download_song
+from geet_brain import download_song
 import threading
 
 BROWSER_ID = ""

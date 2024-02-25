@@ -2,13 +2,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from geet_brain.recommendations import Recommendations
-from geet_brain.analyse import Analyse
+from geet_brain import analyse
 from geet_brain import lyrics
 from geet_brain import synced_lyrics
 from geet_brain import search
 from geet_brain import song
 from geet_brain import foobar  # temporary import
-from geet_brain.utils import download_song
+from geet_brain import download_song
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import create_engine, Column, Integer, String
@@ -20,6 +20,8 @@ import os
 from flask import Flask, render_template, request, url_for, redirect, send_file
 from sqlalchemy.sql import func
 from dotenv import load_dotenv
+
+from pydub import AudioSegment
 
 load_dotenv()
 
@@ -143,17 +145,55 @@ async def get_file(id):
 
 
 @app.route("/analyse", methods=["POST"])
-def analyse_song():
-    audio_file = request.files["audio"]
-    audio_data = audio_file.read()
+async def analyse_song():
 
-    data = request.get_json()
-    user_id = data["user_id"]
-    song_id = data["song_id"]
+    def analyse_song(id, analysisuid):
+    if id is None:
+        return jsonify({"error": "No song id provided"}), 400
+    
+    recording_audio_path = "/static/temp_things/recording_242424353.mp3"
+    
+    recording = AudioSegment.from_mp3(recording_audio_path)
+    analyse = Analyse(
+        recording,
+        id,
+    )
 
-    analyse = Analyse(audio_data, user_id, song_id)
+    color_scheme = gradient_colors.colorize(song.thumb_file)
 
-    return jsonify(analyse.analyse())
+    analyse.append(
+        {
+            "recordingURL": f"static/song/{id}.mp3",
+            "originalVocalsURL": f"static/splitted/mdx_extra_q/{id}/vocals.mp3",
+            "bgColor": color_scheme[0],
+        }
+    )
+
+    return jsonify(analyse)
+
+    # audio_path = "temp_things/recording.mp3"
+
+    # recording = AudioSegment.from_mp3(audio_path)
+    # audio_data, sample_rate = librosa.load(audio_path)
+
+    # anal = Analyse(recording, "LJzp_mDxaT0")
+
+    # print(anal.analyse())
+
+    # audio_file = request.files["audio"]
+    # audio_data = audio_file.read()
+
+    audio_file = "temp_things/recording.mp3"
+    audio_data = AudioSegment.from_file(audio_file)
+    print(audio_data)
+    # data = request.get_json()
+    # song_id = data["song_id"]
+
+    song_id = "LJzp_mDxaT0"
+
+    analyser = analyse.Analyse(audio_data, song_id)
+
+    return jsonify(analyser.analyse())
 
 
 @app.route("/synced-lyrics/<id>", methods=["GET"])
