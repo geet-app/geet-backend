@@ -76,6 +76,7 @@ def fft_and_simplify_data(wav):
     # fft has a complex return value, getting abs val to make it easier
     # to compute
     amplitudes = np.absolute(fourier)
+    amplitudes = amplitudes[amplitudes < 200]
 
     # fft returns the amplitude of different frequencies, this here is an
     # array of different frequencies

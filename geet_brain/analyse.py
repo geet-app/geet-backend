@@ -54,6 +54,7 @@ class Analyse:
             "recording_timbre": [],
             "vocal_timbre": [],
             "recording_tempo": [],
+            "vocal_tempo": [],
         }
 
         self.song = song_id
@@ -116,7 +117,8 @@ class Analyse:
         self.netscore += 0.25 * self.net_length_score
         self.netscore += 0.25 * self.breaks_score
 
-        print("NETSCORE", self.netscore)
+        # print("NETSCORE", self.netscore)
+        self.data["netscore"] = self.netscore * 200
         print(self.data)
 
         return self.netscore
@@ -242,9 +244,25 @@ class Analyse:
 
     def get_tempo(self):
         self.tempo = 0
-        PATH = Path(__file__).parent.parent.absolute() / "static" / "song" / f"{self.song_id}.wav"
+        PATH = (
+            Path(__file__).parent.parent.absolute()
+            / "static"
+            / "song"
+            / f"{self.song_id}.wav"
+        )
+        VOCAL_PATH = (
+            Path(__file__).parent.parent.absolute()
+            / "static"
+            / "splitted"
+            / "mdx_extra_q"
+            / f"{self.song_id}"
+            / "vocals.wav"
+        )
         t, beat_frames = tempo.get_tempo(str(PATH))
+        _t, _beat_frames = tempo.get_tempo(str(VOCAL_PATH))
         self.tempo = t
+        self.vocal_tempo = _t
         self.data["recording_tempo"] = 10 * (round(t / 10))
+        self.data["vocal_tempo"] = 10 * (round(_t / 10))
 
         self.tempo_score += f(self.data["recording_tempo"] - t, 10) / self.total_vocals
