@@ -1,10 +1,13 @@
 from geet_brain import gradient_colors
 from geet_brain import lyrics
+from geet_brain import search
 
-def get_song(id, app, Song):
+async def get_song(id, app, db, Song):
     with app.app_context():
         song = Song.query.filter_by(song_id=id).first()
-
+    if song is None:
+        song = await search.store_song(id, db, Song)
+        # return {"error": "Song not found"}
     response = {
         "title": song.song_title,
         "artist": song.song_artist,

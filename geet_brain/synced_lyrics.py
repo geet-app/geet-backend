@@ -108,7 +108,7 @@ def get_lyrics(id, app, sng):
         return lyrics["lyrics"]
 
 
-async def get_timesynced_lyrics(db, app, songid, song_obj: Song):
+async def get_timesynced_lyrics(db, app, songid, song_obj):
 
     if song_obj.lyrics_synced:
         return song_obj.lyrics_synced, song_obj.lyrics_synced_times

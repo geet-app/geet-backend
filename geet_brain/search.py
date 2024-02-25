@@ -35,6 +35,8 @@ async def store_song(song_id: str, db, Song):
     db.session.add(db_song)
     db.session.commit()
 
+    return db_song
+
 
 async def search_song(query: str, db, Song):
 

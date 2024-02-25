@@ -44,8 +44,8 @@ db = SQLAlchemy(app)
 
 class Song(db.Model):
     __tablename__ = "songs"
-    # id: Mapped[int] = mapped_column(primary_key=True)
-    song_id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    song_id: Mapped[str] = mapped_column(String)
     song_artist: Mapped[str] = mapped_column(String)
     song_title: Mapped[str] = mapped_column(String)
     song_file: Mapped[str] = mapped_column(String)
@@ -107,11 +107,11 @@ def initialize_song(id):
 
 
 @app.route("/song/<id>", methods=["GET"])
-def get_song(id):
+async def get_song(id):
     if id is None:
         return jsonify({"error": "No song id provided"}), 400
 
-    return jsonify(song.get_song(id, app, Song))
+    return jsonify(await song.get_song(id, app, db, Song))
 
 
 @app.route("/lyric/<id>", methods=["GET"])
