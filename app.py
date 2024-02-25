@@ -227,7 +227,10 @@ async def get_synced_lyrics(id):
         times = song.lyrics_synced_times
         times = times.split(",")
 
-    return {"lyrics": lyrics, "timeSync": times, "bgColor": "#242424"}
+    
+    color_scheme = gradient_colors.colorize(song.thumb_file)
+
+    return {"lyrics": lyrics, "timeSync": times, "bgColor":color_scheme[0]}
 
 
 if __name__ == "__main__":

@@ -25,12 +25,12 @@ def get_lyric(id, app, Song):
     color_scheme = gradient_colors.colorize(song.thumb_file)
 
     _lyrics = lyrics.en_fetch_lyrics(song.song_artist, song.song_title)
-    lyrics = {
+    lyricsA = {
         "lyrics": _lyrics,
         "bgColor": color_scheme[0],
     }
 
-    return lyrics
+    return lyricsA
 
 
 # def get_lyrics():
