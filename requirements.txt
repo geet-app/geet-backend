@@ -61,3 +61,6 @@ Werkzeug==3.0.1
 worker==2018.4.1
 yarl==1.9.4
 ytmusicapi==1.5.3
+openai-whisper
+demucs
+pydub
