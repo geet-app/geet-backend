@@ -225,8 +225,7 @@ async def get_synced_lyrics(id):
     else:
         lyrics = song.lyrics_synced
         times = song.lyrics_synced_times
-        times = times.split(",")
-
+        # times = times.split(",")
     
     color_scheme = gradient_colors.colorize(song.thumb_file)
 
