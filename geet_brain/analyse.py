@@ -5,6 +5,7 @@ from geet_brain import tempo
 from geet_brain import non_silent
 
 import numpy as np
+from app import Song
 
 from pydub import AudioSegment, silence
 
@@ -20,25 +21,24 @@ def f(x, w=15):
     return np.where(mask, sqr, inv)
 
 
-class Analyse:
-    def __init__(self, audio, song_id) -> None:
+class Analyser:
+    def __init__(self, audio, song_obj: Song) -> None:
         self.audio = audio
         # self.user_id = user_id
-        self.song_id = song_id
+        self.song_id = song_obj.song_id
+        self.song_obj = song_obj
         # self.index = index
 
-        _non_silent = non_silent.get_nonsilent(
-            f"./static/splitted/mdx_extra_q/{self.song_id}/vocals.mp3"
-        )
+        _non_silent = non_silent.get_nonsilent(song_obj.vocal_file)
 
         self.end_data = {
-            "instrumental": f"./static/splitted/mdx_extra_q/{self.song_id}/instrumental.mp3",
+            "instrumental": song_obj.instrumental_file,
             "end": _non_silent[-1][-1],
             "vocal_sections": _non_silent,
         }
 
         self.data = {
-            "song": song_id,
+            "song": song_obj.song_id,
             "netscore": 0,
             "vocal_sections": self.end_data["vocal_sections"],
             "length_diff": [],
@@ -56,11 +56,11 @@ class Analyse:
             "recording_tempo": [],
         }
 
-        self.song = song_id
+        self.song = song_obj.song_id
 
-        self.vocals = AudioSegment.from_mp3(
-            f"./static/splitted/mdx_extra_q/{self.song_id}/vocals.mp3"
-        )[self.data["vocal_sections"][0][0] : self.data["vocal_sections"][0][1]]
+        self.vocals = AudioSegment.from_mp3(song_obj.vocal_file)[
+            self.data["vocal_sections"][0][0] : self.data["vocal_sections"][0][1]
+        ]
 
         self.total_vocals = len(self.end_data["vocal_sections"])
 
@@ -119,7 +119,7 @@ class Analyse:
         print("NETSCORE", self.netscore)
         print(self.data)
 
-        return self.netscore
+        return self.data
 
     def get_length_diff(self):
         self.length_diff = 0
@@ -166,12 +166,8 @@ class Analyse:
     def get_timbre(self):
         # self.initialise_frequency_data()
 
-        self.timbre = dominant_timbre.get_dominant_timbre(
-            f"./static/song/{self.song_id}.wav"
-        )
-        self.v_timbre = dominant_timbre.get_dominant_timbre(
-            f"./static/splitted/mdx_extra_q/{self.song_id}/vocals.wav"
-        )
+        self.timbre = dominant_timbre.get_dominant_timbre(self.song_obj.song_file)
+        self.v_timbre = dominant_timbre.get_dominant_timbre(self.song_obj.vocal_file)
 
         # print(self.timbre, self.v_timbre)
 
@@ -213,11 +209,9 @@ class Analyse:
             #     f"./hard_drive/temp/{self.song_id}_vocals.wav", format="wav"
             # )
 
-            self.timbre = dominant_timbre.get_dominant_timbre(
-                f"./static/song/{self.song_id}.wav"
-            )
+            self.timbre = dominant_timbre.get_dominant_timbre(self.song_obj.song_file)
             self.v_timbre = dominant_timbre.get_dominant_timbre(
-                f"./static/splitted/mdx_extra_q/{self.song_id}/vocals.wav"
+                self.song_obj.vocal_file
             )
         except Exception as e:
             print(e)
@@ -242,8 +236,7 @@ class Analyse:
 
     def get_tempo(self):
         self.tempo = 0
-        PATH = Path(__file__).parent.parent.absolute() / "static" / "song" / f"{self.song_id}.wav"
-        t, beat_frames = tempo.get_tempo(str(PATH))
+        t, beat_frames = tempo.get_tempo(self.song_obj.song_file)
         self.tempo = t
         self.data["recording_tempo"] = 10 * (round(t / 10))
 

@@ -1,3 +1,4 @@
+from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -8,7 +9,7 @@ from geet_brain import synced_lyrics
 from geet_brain import search
 from geet_brain import song
 from geet_brain import foobar  # temporary import
-from geet_brain import download_song
+from geet_brain import download_song, gradient_colors
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import create_engine, Column, Integer, String
@@ -144,24 +145,34 @@ async def get_file(id):
         )
 
 
-@app.route("/analyse", methods=["POST"])
-async def analyse_song():
+@app.route("/analyse/<id>/analysis_uid", methods=["POST"])
+async def analyse_song(id, analysis_uid):
 
-    def analyse_song(id, analysisuid):
     if id is None:
         return jsonify({"error": "No song id provided"}), 400
-    
-    recording_audio_path = "/static/temp_things/recording_242424353.mp3"
-    
+    if analysis_uid is None:
+        return jsonify({"error": "No analysis_uid provided"}), 400
+
+    recording_audio_path = (Path(__file__) / "static" / "temp_things" / "recording_242424353.mp3").absolute()
+
     recording = AudioSegment.from_mp3(recording_audio_path)
-    analyse = Analyse(
+    
+    if Song.query.filter_by(song_id=id).first() is None:
+        song_obj = await search.store_song(id, db, Song)
+        synced_lyrics.separate_vocal(song_obj, db)
+    else:
+        song_obj = Song.query.filter_by(song_id=id).first()
+    
+    analyser_obj = analyse.Analyser(
         recording,
-        id,
+        song_obj,
     )
 
-    color_scheme = gradient_colors.colorize(song.thumb_file)
+    data = analyser_obj.analyse()
 
-    analyse.append(
+    color_scheme = gradient_colors.colorize(song_obj.thumb_file)
+
+    data.append(
         {
             "recordingURL": f"static/song/{id}.mp3",
             "originalVocalsURL": f"static/splitted/mdx_extra_q/{id}/vocals.mp3",
@@ -169,7 +180,7 @@ async def analyse_song():
         }
     )
 
-    return jsonify(analyse)
+    return data
 
     # audio_path = "temp_things/recording.mp3"
 
@@ -191,7 +202,7 @@ async def analyse_song():
 
     song_id = "LJzp_mDxaT0"
 
-    analyser = analyse.Analyse(audio_data, song_id)
+    analyser = analyse.Analyser(audio_data, song_id)
 
     return jsonify(analyser.analyse())
 

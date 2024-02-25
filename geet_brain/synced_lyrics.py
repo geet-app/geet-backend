@@ -92,8 +92,8 @@ def separate_vocal(song_obj: Song, db):
         shell=True,
     )
 
-    song_obj.instrumental_file = str(out_path / "mdx_extra_q" / song_obj.song_id / "no_vocals.mp3")
-    song_obj.vocal_file = str(out_path / "mdx_extra_q" / song_obj.song_id / "vocals.mp3")
+    song_obj.instrumental_file = str((out_path / "mdx_extra_q" / song_obj.song_id / "no_vocals.mp3").absolute())
+    song_obj.vocal_file = str((out_path / "mdx_extra_q" / song_obj.song_id / "vocals.mp3").absolute())
     db.session.commit()
 
 
