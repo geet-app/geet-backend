@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -56,6 +57,13 @@ class Song(db.Model):
     instrumental_file: Mapped[str] = mapped_column(String, nullable=True)
     lyrics_synced: Mapped[str] = mapped_column(String, nullable=True)
     lyrics_synced_times: Mapped[str] = mapped_column(String, nullable=True)
+
+class Analyse(db.Model):
+    __tablename__ = "analysis"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    song_id: Mapped[str] = mapped_column(String)
+    analysis_uid: Mapped[str] = mapped_column(String)
+    data: Mapped[str] = mapped_column(String)
 
 
 class UserHistory(db.Model):
@@ -147,6 +155,60 @@ async def get_file(id):
 
 @app.route("/analyse/<id>/<analysis_uid>", methods=["POST"])
 async def analyse_song(id, analysis_uid):
+
+    if id is None:
+        return jsonify({"error": "No song id provided"}), 400
+    if analysis_uid is None:
+        return jsonify({"error": "No analysis_uid provided"}), 400
+
+    if not db.session.query(Analyse).filter(Analyse.song_id == id).count():
+
+        recording_audio_path = (
+            Path(__file__).parent / "static" / "temp_things" / f"recording_{id}.mp3"
+        ).absolute()
+
+        recording = AudioSegment.from_mp3(recording_audio_path)
+
+        if Song.query.filter_by(song_id=id).first() is None:
+            song_obj = await search.store_song(id, db, Song)
+            # await synced_lyrics.separate_vocal(song_obj, db)
+        else:
+            song_obj = Song.query.filter_by(song_id=id).first()
+            # if song_obj.vocal_file is None:
+            # await synced_lyrics.separate_vocal(song_obj, db)
+
+        song_obj.song_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/song/{id}.wav"
+        song_obj.vocal_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/{id}/vocals.wav"
+        song_obj.instrumental_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/{id}/instrumental.wav"
+
+        analyser_obj = analyse.Analyser(
+            recording,
+            song_obj,
+        )
+
+        data = analyser_obj.analyse()
+
+        color_scheme = gradient_colors.colorize(song_obj.thumb_file)
+
+        data["recordingURL"] = f"static/temp_things/recording_{id}.mp3"
+        data["originalVocalsURL"] = f"static/splitted/mdx_extra_q/{id}/vocals.mp3"
+        data["bgColor"] = color_scheme[0]
+
+        db_analyse = Analyse(
+            song_id=id,
+            analysis_uid=analysis_uid,
+            data=json.dump(data),
+        )
+
+        db.session.add(db_analyse)
+        db.session.commit()
+
+    else:
+        db_analyse = db.session.query(Analyse).filter(Analyse.song_id == id).first()
+        print(db_analyse)
+        data = json.load(db_analyse)
+
+    return data
 
     if id is None:
         return jsonify({"error": "No song id provided"}), 400
