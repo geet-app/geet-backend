@@ -1,18 +1,21 @@
 import subprocess
+import asyncio
+from pathlib import Path
+
+YTDLP_PATH = "yt-dlp"
+MY_PATH = Path(__file__).parent.parent.parent.absolute() / "static/song"
 
 async def download_yt(song_id, purify=False):
-    print("Downloading Song : ", song_id, "\nTo: ./static/song \nAs : <itself>")
 
-    command = "yt-dlp -f 251 --id https://www.youtube.com/watch?v=" + song_id
-    process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE)
-    process.wait()
-
-    subprocess.check_output(
-        f"ffmpeg -i ./{song_id}.webm -vn ./static/song/{song_id}.mp3".split(" ")
+    file_name = f"{song_id}.mp3"
+    # print(f"{YTDLP_PATH} --extract-audio --audio-format mp3 --audio-quality 0 -o {MY_PATH}/{file_name} {song_id}")
+    proc = await asyncio.create_subprocess_shell(
+        f"{YTDLP_PATH} --extract-audio --audio-format mp3 --audio-quality 0 -o {MY_PATH}/{file_name} {song_id}",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
-
-    subprocess.check_output(f"rm ./{song_id}.webm".split(" "))
-
-    print("Downloaded Song : ", song_id, "\nTo: ./static/song \nAs : <itself>")
-
-    return f"./static/song/{song_id}.mp3"
+    stdout, stderr = await proc.communicate()
+    # print(stdout)
+    # print(stderr)
+    print("downloaded")
+    return str(MY_PATH/file_name)

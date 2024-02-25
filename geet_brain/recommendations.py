@@ -11,10 +11,10 @@ ROCK_HITS = "VLPLl5_Ali2qKoZxKDeDhJ7Bt5chQdOkWv-A"
 class Recommendations:
     def __init__(self, db, Song):
         self.ytmusic = YTMusic("oauth.json")
-        self.db = db
+        self.db = db 
         self.Song = Song
 
-    def generate_response(self, yt_response):
+    async def generate_response(self, yt_response):
         # response = {
         #     "songs": [
         #         {
@@ -34,7 +34,7 @@ class Recommendations:
                 .filter(self.Song.song_id == song["videoId"])
                 .count()
             ):
-                store_song(song["videoId"], self.db, self.Song)
+                await store_song(song["videoId"], self.db, self.Song)
 
             db_song = (
                 self.db.session.query(self.Song)
@@ -54,25 +54,25 @@ class Recommendations:
 
         return response
 
-    def pop_hits(self):
+    async def pop_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=POP_HITS)
-        response = self.generate_response(yt_response)
+        response = await self.generate_response(yt_response)
         return response
 
-    def hip_hop_hits(self):
+    async def hip_hop_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=HIP_HOP_HITS)
-        response = self.generate_response(yt_response)
+        response = await self.generate_response(yt_response)
 
         return response
 
-    def indie_hits(self):
+    async def indie_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=INDIE_HITS)
-        response = self.generate_response(yt_response)
+        response = await self.generate_response(yt_response)
         return response
 
-    def rock_hits(self):
+    async def rock_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=ROCK_HITS)
-        response = self.generate_response(yt_response)
+        response = await self.generate_response(yt_response)
         return response
 
     def search_song(self, id):

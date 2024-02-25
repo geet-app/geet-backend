@@ -166,3 +166,5 @@ wow.json
 temp_*.json
 
 temp_*
+
+static/song/*

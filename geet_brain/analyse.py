@@ -65,6 +65,7 @@ class Analyse:
         )
 
     def init_data(self):
+        pass
 
     def analyse(self):
         self.netscore = 0
