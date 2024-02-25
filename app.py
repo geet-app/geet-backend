@@ -1,46 +1,54 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask import request
-
+from flask_sqlalchemy import SQLAlchemy
 from geet_brain.recommendations import Recommendations
 from geet_brain.analyse import Analyse
 from geet_brain import lyrics
 from geet_brain import search
+from geet_brain import song
 from geet_brain import foobar  # temporary import
+from geet_brain.utils import download_song
 
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-
-from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import redis
 import os
+from flask import Flask, render_template, request, url_for, redirect, send_file
+from sqlalchemy.sql import func
 from dotenv import load_dotenv
 
 load_dotenv()
 
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
 
 app = Flask(__name__)
 CORS(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
-db.init_app(app)
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
+    basedir, "database.db"
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
 
 
 class Song(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    song_id: Mapped[str] = mapped_column(String)
+    __tablename__ = "songs"
+    # id: Mapped[int] = mapped_column(primary_key=True)
+    song_id: Mapped[str] = mapped_column(String, primary_key=True)
+    song_artist: Mapped[str] = mapped_column(String)
+    song_title: Mapped[str] = mapped_column(String)
     song_file: Mapped[str] = mapped_column(String)
     thumb_file: Mapped[str] = mapped_column(String)
 
 
 class UserHistory(db.Model):
+    __tablename__ = "user_history"
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[str] = mapped_column(String)
     song_id: Mapped[str] = mapped_column(String)
@@ -48,31 +56,14 @@ class UserHistory(db.Model):
     score: Mapped[int] = mapped_column(Integer)
 
 
-with app.app_context():
-    db.create_all()
-
-
 @app.route("/")
 def index():
     return "Hello, World!"
 
 
-@app.route("/lyrics", methods=["POST"])
-def get_lyrics():
-    data = request.get_json()
-    # print(data)
-    artist_name = data["artist_name"]
-    song_name = data["song_name"]
-
-    if data["lang"] == "en":
-        return jsonify(lyrics.en_fetch_lyrics(artist_name, song_name))
-    else:
-        return jsonify(lyrics.hn_fetch_lyrics(artist_name, song_name))
-
-
 @app.route("/recommendations/<genre>", methods=["GET"])
 def get_recommendations(genre):
-    recommendations = Recommendations()
+    recommendations = Recommendations(db, Song)
 
     if genre == "pop":
         return jsonify(recommendations.pop_hits())
@@ -86,13 +77,12 @@ def get_recommendations(genre):
         return jsonify({"Error": "Invalid genre"})
 
 
-@app.route("/search", methods=["GET"])
-def search_songs():
-    query = request.args.get("query")
+@app.route("/search/<query>", methods=["GET"])
+def search_songs(query):
     if query is None:
         return jsonify({"error": "No query provided"}), 400
 
-    return jsonify(search.search_song(query))
+    return jsonify(search.search_song(query, db, Song))
 
 
 @app.route("/init/<id>", methods=["POST"])
@@ -103,6 +93,38 @@ def initialize_song(id):
 
     if not song.initialised:
         song.initialise()
+
+
+@app.route("/song/<id>", methods=["GET"])
+def get_song(id):
+    if id is None:
+        return jsonify({"error": "No song id provided"}), 400
+
+    return jsonify(song.get_song(id, db, Song))
+
+
+@app.route("/lyric/<id>", methods=["GET"])
+def get_lyric(id):
+    if id is None:
+        return jsonify({"error": "No song id provided"}), 400
+
+    return jsonify(song.get_lyric(id, db, Song))
+
+
+@app.route("/static/song/<id>", methods=["GET"])
+async def get_file(id):
+    if id is None:
+        return jsonify({"error": "No song id provided"}), 400
+
+    if os.path.exists(f"static/song/{id}.mp3"):
+        return send_file(
+            f"static/song/{id}.mp3", as_attachment=True, mimetype="audio/mp3"
+        )
+    else:
+        await download_song.download_yt(id)
+        return send_file(
+            f"static/song/{id}.mp3", as_attachment=True, mimetype="audio/mp3"
+        )
 
 
 @app.route("/analyse", methods=["POST"])
@@ -120,4 +142,9 @@ def analyse_song():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+        print("*" * 50)
+        print("Database created")
+        print("*" * 50)
+        app.run(debug=True)

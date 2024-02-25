@@ -1,75 +1,79 @@
 from ytmusicapi import YTMusic
+from geet_brain.search import store_song
+from geet_brain.utils import gradient_colors
 
-POP_HITS = "RDCLAK5uy_nmS3YoxSwVVQk9lEQJ0UX4ZCjXsW_psU8"
-HIP_HOP_HITS = "RDCLAK5uy_kw2wIlEv9llILhO0qoMTLsBBhmjzuibAc"
+POP_HITS = "PLl5_Ali2qKoaRsOnC0j4bqAYVMD5W26PA"
+HIP_HOP_HITS = "PLl5_Ali2qKoatbKApLFNY4vySMxbIZgMJ"
 INDIE_HITS = "RDCLAK5uy_kFs4DBLn3pFmAiXodtYyzaB5Xa_njue3A"
-ROCK_HITS = "RDCLAK5uy_k6CicQMBYujmwL9DB5xBripE9EfgeKpHM"
+ROCK_HITS = "VLPLl5_Ali2qKoZxKDeDhJ7Bt5chQdOkWv-A"
 
 
 class Recommendations:
-    def __init__(self):
+    def __init__(self, db, Song):
         self.ytmusic = YTMusic("oauth.json")
+        self.db = db
+        self.Song = Song
+
+    def generate_response(self, yt_response):
+        # response = {
+        #     "songs": [
+        #         {
+        #             "title": song["title"],
+        #             "artist": song["artists"][0]["name"],
+        #             "song_id": song["videoId"],
+        #             "thumbnail": song["thumbnails"][0]["url"],
+        #         }
+        #         for song in yt_response["tracks"]
+        #     ]
+        # }
+
+        response = {"songs": []}
+        for song in yt_response["tracks"][:5]:
+            if (
+                not self.db.session.query(self.Song)
+                .filter(self.Song.song_id == song["videoId"])
+                .count()
+            ):
+                store_song(song["videoId"], self.db, self.Song)
+
+            db_song = (
+                self.db.session.query(self.Song)
+                .filter(self.Song.song_id == song["videoId"])
+                .first()
+            )
+
+            response["songs"].append(
+                {
+                    "title": db_song.song_title,
+                    "artist": db_song.song_artist,
+                    "song_id": db_song.song_id,
+                    "thumbnail": db_song.thumb_file,
+                    "bgColor": gradient_colors.colorize(db_song.thumb_file)[0],
+                }
+            )
+
+        return response
 
     def pop_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=POP_HITS)
-        response = {
-            "songs": [
-                {
-                    "title": song["title"],
-                    "artist": song["artists"][0]["name"],
-                    "song_id": song["videoId"],
-                    "thumbnail": song["thumbnails"][0]["url"],
-                }
-                for song in yt_response["tracks"]
-            ]
-        }
-
+        response = self.generate_response(yt_response)
         return response
 
     def hip_hop_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=HIP_HOP_HITS)
-        response = {
-            "songs": [
-                {
-                    "title": song["title"],
-                    "artist": song["artists"][0]["name"],
-                    "song_id": song["videoId"],
-                    "thumbnail": song["thumbnails"][0]["url"],
-                }
-                for song in yt_response["tracks"]
-            ]
-        }
+        response = self.generate_response(yt_response)
 
         return response
 
     def indie_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=INDIE_HITS)
-        response = {
-            "songs": [
-                {
-                    "title": song["title"],
-                    "artist": song["artists"][0]["name"],
-                    "song_id": song["videoId"],
-                    "thumbnail": song["thumbnails"][0]["url"],
-                }
-                for song in yt_response["tracks"]
-            ]
-        }
-
+        response = self.generate_response(yt_response)
         return response
 
     def rock_hits(self):
         yt_response = self.ytmusic.get_playlist(playlistId=ROCK_HITS)
-        response = {
-            "songs": [
-                {
-                    "title": song["title"],
-                    "artist": song["artists"][0]["name"],
-                    "song_id": song["videoId"],
-                    "thumbnail": song["thumbnails"][0]["url"],
-                }
-                for song in yt_response["tracks"]
-            ]
-        }
-
+        response = self.generate_response(yt_response)
         return response
+
+    def search_song(self, id):
+        pass

@@ -14,7 +14,7 @@ def en_fetch_lyrics(artist_name, song_name):
 
         if lyrics_div:
             lyrics = lyrics_div.get_text(strip=True, separator="\n")
-            return {"lyrics": lyrics}
+            return lyrics
         else:
             return {"Error": "Lyrics not found"}
 

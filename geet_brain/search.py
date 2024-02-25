@@ -1,32 +1,87 @@
 from ytmusicapi import YTMusic
-# from .cacher import Cache
+import asyncio
+from geet_brain.utils import download_song
+import threading
 
-def search_song(query: str):
+BROWSER_ID = ""
+
+
+# from .cacher import Cache
+def store_song(song_id: str, db, Song):
+    ytmusic = YTMusic("oauth.json")
+    individual_song_response = ytmusic.get_song(song_id)
+
+    individual_song_thumbnail = individual_song_response["videoDetails"]["thumbnail"][
+        "thumbnails"
+    ][3]["url"]
+    individual_song_title = individual_song_response["videoDetails"]["title"]
+    individual_song_artist = individual_song_response["videoDetails"]["author"]
+
+    # individual_song_file = (download_song.download_yt, song_id)
+    individual_song_file = threading.Thread(
+        target=download_song.download_yt, args=(song_id,)
+    )
+
+    db_song = Song(
+        song_id=song_id,
+        song_title=individual_song_title,
+        song_artist=individual_song_artist,
+        thumb_file=individual_song_thumbnail,
+        song_file=f"/static/songs/{song_id}.mp3",
+    )
+
+    db.session.add(db_song)
+    db.session.commit()
+
+
+def search_song(query: str, db, Song):
+
     ytmusic = YTMusic("oauth.json")
     yt_response = ytmusic.search(query, filter="songs")
-    
-    # cache = Cache()
 
-    quality_responses = []
-    
-    # for song in yt_response:
-        # cached = cache.lookup(song["videoId"])
-        # if cached:
-        #     quality_responses.append(cached)
-        # else:
-        #     song_info = ytmusic.get_song(song["videoId"])
-        #     quality_responses.append(song_info)
-        #     cache.store(song["videoId"], song_info)
+    response = {"songs": []}
 
-    response = {
-        "songs": [
-            {
-                "title": song["title"],
-                "artist": song["artists"][0]["name"],
-                "song_id": song["videoId"],
-                "thumbnail": song["thumbnails"][0]["url"],
-            }
-            for song in yt_response
-        ]
-    }
+    for result in yt_response[:5]:
+        if not db.session.query(Song).filter(Song.song_id == result["videoId"]).count():
+            # asyncio.create_task(store_song(result["videoId"], db, Song))
+            # threading.Thread(
+            #     target=store_song, args=(result["videoId"], db, Song)
+            # ).start()
+
+            store_song(result["videoId"], db, Song)
+            response["songs"].append(
+                {
+                    "title": result["title"],
+                    "artist": result["artists"][0]["name"],
+                    "song_id": result["videoId"],
+                    "thumbnail": result["thumbnails"][0]["url"],
+                }
+            )
+
+        else:
+            db_song = (
+                db.session.query(Song).filter(Song.song_id == result["videoId"]).first()
+            )
+
+            response["songs"].append(
+                {
+                    "title": db_song.song_title,
+                    "artist": db_song.song_artist,
+                    "song_id": db_song.song_id,
+                    "thumbnail": db_song.thumb_file,
+                }
+            )
+
+    # for song in yt_response[:5]:
+    #     if not db.session.query(Song).filter(Song.song_id == song["videoId"]).count():
+
+    #         response["songs"].append(
+    #             {
+    #                 "title": song["title"],
+    #                 "artist": song["artists"][0]["name"],
+    #                 "song_id": song["videoId"],
+    #                 "thumbnail": song["thumbnails"][0]["url"],
+    #             }
+    #         )
+
     return response

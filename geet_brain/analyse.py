@@ -23,18 +23,18 @@ def f(x, w=15):
 class Analyse:
     def __init__(self, audio, user_id, song_id, index) -> None:
         self.audio = audio
-        self.user_id = user_id
+        # self.user_id = user_id
         self.song_id = song_id
-        self.index = index
+        # self.index = index
 
-        self.data  # todo
-        self.song = (
-            foobar.foo()
-        )  # temperarory call, should be replaced by caching which will be done by pjr
+        self.data = {
+            
+        } # todo, numpy array of the audio data
+        self.song = song_id
 
         self.vocals = AudioSegment.from_mp3(
-            f"./hard_drive/swap/{self.song.vocals}.mp3"
-        )[self.data["vocal_sections"][index][0] : self.data["vocal_sections"][index][1]]
+            f"./static/song/{self.song.vocals}.mp3"
+        )
 
         self.relative_silence_threshold = 8
 
@@ -63,6 +63,8 @@ class Analyse:
             silence_thresh=self.recording.dBFS - 12,
             seek_step=250,
         )
+
+    def init_data(self):
 
     def analyse(self):
         self.netscore = 0
