@@ -12,7 +12,7 @@ async def get_song(id, app, db, Song):
         "title": song.song_title,
         "artist": song.song_artist,
         "id": song.song_id,
-        "audio": song.song_file,
+        "audio": f"static/splitted/mdx_extra_q/{song.song_id}/no_vocals.mp3",
         "thumbnail": song.thumb_file,
     }
     return response

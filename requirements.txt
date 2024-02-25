@@ -65,3 +65,4 @@ openai-whisper
 demucs
 pydub
 setuptools
+diffq

@@ -10,8 +10,9 @@ from geet_brain import song
 
 YTDLP_PATH = "yt-dlp"  # the command can be global too!
 
-MY_PATH = Path(__file__).parent.absolute() / "static"
+MY_PATH = Path(__file__).parent.parent.absolute() / "static"
 
+print(MY_PATH)
 
 def jaccard_similarity(sent1, sent2):
     """Find text similarity using jaccard similarity"""
@@ -87,13 +88,18 @@ async def separate_vocal(song_obj, db):
     if song_obj.instrumental_file and song_obj.vocal_file:
         return # already separated
     
+    print(song_obj.song_file)
+
     out_path = Path(song_obj.song_file).parent.parent / "splitted"
 
+    print(out_path)
+    print("demucs start")
     proc = await asyncio.create_subprocess_shell(
-        f"demucs {song_obj.song_file} --out {out_path} -n mdx_extra_q --two-stems vocals --mp3 -j 8",
+        f"demucs {song_obj.song_file} --out {out_path} -n mdx_extra_q --two-stems vocals --mp3 -j 6",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
+    print("demucs over")
     stdout, stderr = await proc.communicate()
     print(stdout, stderr)
 
@@ -129,4 +135,4 @@ async def get_timesynced_lyrics(db, app, songid, song_obj):
     song_obj.lyrics_synced_times = str(times).lstrip("[").rstrip("]")
     db.session.commit()
 
-    return texts, times
+    return "\n".join(texts), times

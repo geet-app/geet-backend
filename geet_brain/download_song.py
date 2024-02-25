@@ -3,7 +3,7 @@ import asyncio
 from pathlib import Path
 
 YTDLP_PATH = "yt-dlp"
-MY_PATH = Path(__file__).parent.parent.parent.absolute() / "static/song"
+MY_PATH = Path(__file__).parent.parent.absolute() / "static" / "song"
 
 async def download_yt(song_id, purify=False):
 
