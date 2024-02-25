@@ -168,3 +168,4 @@ temp_*.json
 temp_*
 
 static/song/*
+static/splitted/*
