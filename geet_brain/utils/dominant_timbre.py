@@ -1,6 +1,8 @@
 import numpy as np
 import math
 from scipy.io import wavfile
+from functools import reduce
+
 
 
 def get_dominant_timbre(wav):
@@ -15,7 +17,7 @@ def get_dominant_timbre(wav):
         apnd = True
 
         for e in a:
-            if not abs(e - freq[index]) <= 50 and freq[index] > a[0]:
+            if not np.any(abs(e - freq[index]) <= 50) and freq[index] > a[0]:
                 apnd = True
             else:
                 apnd = False
@@ -24,26 +26,29 @@ def get_dominant_timbre(wav):
         if apnd:
             a.append(freq[index])
 
-            freqs.append(round(freq[index]))
-            amps.append(round(amp[index]))
+            freqs.append(np.round(freq[index]))
+            amps.append(np.round(amp[index]))
 
             i += 1
         if i == 5:
             break
 
     lcm = 1
-    for i in amps:
-        lcm = lcm * i // math.gcd(lcm, i)
+    amps = np.array(amps)
+    lcm = np.lcm.reduce(amps.astype(int))
 
     s = ""
     ar = []
     for a in amps:
-        ar.append(a / lcm)
-    m = math.floor(np.log10(np.amin(ar)))
+        if lcm != 0:
+            ar.append(a / lcm)
+        else:
+            ar.append(0)
+    m = math.floor(np.log10(np.nanmin(ar))) if np.isnan(np.nanmin(ar)) else math.floor(np.log10(np.nanmin(ar)))
 
     ratio = []
     for a in ar:
-        ratio.append(round(a * 10 ** (m * -1)))
+        ratio.append(np.round(a * 10 ** (m * -1)))
 
     return amps, freqs, ratio
 
@@ -54,7 +59,7 @@ def fft_and_simplify_data(wav):
     len_data = len(aud_data)
 
     print(len_data)
-    channel = np.zeros(2 ** (int(np.ceil(np.log2(len_data)))))
+    channel = np.zeros((2 ** (int(np.ceil(np.log2(len_data)))), 2))
     channel[0:len_data] = aud_data
 
     fourier = np.fft.fft(channel)

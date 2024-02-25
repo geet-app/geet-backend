@@ -1,5 +1,6 @@
 import subprocess
 
+
 async def download_yt(song_id, purify=False):
     print("Downloading Song : ", song_id, "\nTo: ./static/song \nAs : <itself>")
 
@@ -8,11 +9,11 @@ async def download_yt(song_id, purify=False):
     process.wait()
 
     subprocess.check_output(
-        f"ffmpeg -i ./{song_id}.webm -vn ./static/song/{song_id}.mp3".split(" ")
+        f"ffmpeg -i ./{song_id}.webm -vn ./static/song/{song_id}.wav".split(" ")
     )
 
     subprocess.check_output(f"rm ./{song_id}.webm".split(" "))
 
     print("Downloaded Song : ", song_id, "\nTo: ./static/song \nAs : <itself>")
 
-    return f"./static/song/{song_id}.mp3"
+    return f"./static/song/{song_id}.wav"
