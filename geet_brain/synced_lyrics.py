@@ -3,7 +3,7 @@ import subprocess
 import whisper
 import math
 import requests
-from app import Song
+# from app import Song
 from pathlib import Path
 
 from geet_brain import song
@@ -82,7 +82,7 @@ def convert_to_format(lyrics_synced):
     return texts, times
 
 
-async def separate_vocal(song_obj: Song, db):
+async def separate_vocal(song_obj, db):
 
     if song_obj.instrumental_file and song_obj.vocal_file:
         return # already separated
