@@ -7,7 +7,7 @@ from geet_brain.recommendations import Recommendations
 from geet_brain import analyse
 from geet_brain import lyrics
 from geet_brain import synced_lyrics
-from geet_brain import search
+from geet_brain import search, convert_file
 from geet_brain import song
 from geet_brain import foobar  # temporary import
 from geet_brain import download_song, gradient_colors
@@ -177,9 +177,22 @@ async def analyse_song(id, analysis_uid):
             # if song_obj.vocal_file is None:
             # await synced_lyrics.separate_vocal(song_obj, db)
 
-        song_obj.song_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/song/{id}.wav"
-        song_obj.vocal_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/{id}/vocals.wav"
-        song_obj.instrumental_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/{id}/instrumental.wav"
+        song_obj.song_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/song/{id}.mp3"
+        song_obj.vocal_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/{id}/vocals.mp3"
+        song_obj.instrumental_file = f"/Users/pranjalrastogi/projects/HACKATHON2024/arnavsplayground/geet-backend/static/splitted/mdx_extra_q/{id}/no_vocals.mp3"
+
+        if song_obj.song_file.endswith(".mp3"):
+            await convert_file.convert_file(song_obj.song_file)
+            song_obj.song_file = song_obj.song_file.replace(".mp3", ".wav")
+
+        if song_obj.vocal_file.endswith(".mp3"):
+            await convert_file.convert_file(song_obj.vocal_file)
+            song_obj.vocal_file = song_obj.vocal_file.replace(".mp3", ".wav")
+
+        if song_obj.instrumental_file.endswith(".mp3"):
+            await convert_file.convert_file(song_obj.instrumental_file)
+            song_obj.instrumental_file = song_obj.instrumental_file.replace(".mp3", ".wav")
+
 
         analyser_obj = analyse.Analyser(
             recording,
@@ -197,7 +210,7 @@ async def analyse_song(id, analysis_uid):
         db_analyse = Analyse(
             song_id=id,
             analysis_uid=analysis_uid,
-            data=json.dump(data),
+            data=json.dumps(data),
         )
 
         db.session.add(db_analyse)
