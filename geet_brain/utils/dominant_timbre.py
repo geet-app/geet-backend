@@ -35,6 +35,8 @@ def get_dominant_timbre(wav):
 
     lcm = 1
     amps = np.array(amps)
+    print(amps.astype(int))
+    print(np.lcm.reduce(amps.astype(int)))
     lcm = np.lcm.reduce(amps.astype(int))
 
     s = ""
@@ -58,7 +60,7 @@ def fft_and_simplify_data(wav):
 
     len_data = len(aud_data)
 
-    print(len_data)
+    # print(len_data)
     channel = np.zeros((2 ** (int(np.ceil(np.log2(len_data)))), 2))
     channel[0:len_data] = aud_data
 

@@ -1,5 +1,5 @@
-from utils import download_song, dominant_timbre, tempo
-from utils import non_silent
+from .utils import download_song, dominant_timbre, tempo
+from .utils import non_silent
 
 import numpy as np
 

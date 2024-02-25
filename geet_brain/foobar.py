@@ -1,4 +1,4 @@
-from analyse import Analyse
+from .analyse import Analyse
 from pydub import AudioSegment
 
 audio_path = "temp_things/recording.mp3"
