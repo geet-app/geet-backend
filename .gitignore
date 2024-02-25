@@ -161,3 +161,8 @@ cython_debug/
 
 oauth.json
 .DS_Store
+woe.json
+wow.json
+temp_*.json
+
+temp_*
