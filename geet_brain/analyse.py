@@ -54,6 +54,7 @@ class Analyser:
             "recording_timbre": [],
             "vocal_timbre": [],
             "recording_tempo": [],
+            "vocal_tempo": [],
         }
 
         self.song = song_obj.song_id
@@ -116,7 +117,8 @@ class Analyser:
         self.netscore += 0.25 * self.net_length_score
         self.netscore += 0.25 * self.breaks_score
 
-        print("NETSCORE", self.netscore)
+        # print("NETSCORE", self.netscore)
+        self.data["netscore"] = self.netscore * 200
         print(self.data)
 
         return self.data
@@ -237,7 +239,10 @@ class Analyser:
     def get_tempo(self):
         self.tempo = 0
         t, beat_frames = tempo.get_tempo(self.song_obj.song_file)
+        _t, _beat_frames = tempo.get_tempo(self.song_obj.vocal_file)
         self.tempo = t
+        self.vocal_tempo = _t
         self.data["recording_tempo"] = 10 * (round(t / 10))
+        self.data["vocal_tempo"] = 10 * (round(_t / 10))
 
         self.tempo_score += f(self.data["recording_tempo"] - t, 10) / self.total_vocals
